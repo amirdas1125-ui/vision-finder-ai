@@ -1,1 +1,158 @@
 
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vision Finder AI</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;background:#101116;color:white;
+ font-family:Arial,sans-serif;padding:18px;
+}
+header{text-align:center;color:#e6b84a}
+h1{font-size:27px}
+.card{
+ background:#20212a;padding:16px;
+ border-radius:15px;margin:15px 0;
+ border:1px solid #393943;
+}
+button,.upload{
+ background:#d9a938;color:#111;
+ border:0;padding:13px;border-radius:9px;
+ font-weight:bold;width:100%;margin-top:10px;
+ display:block;text-align:center;
+}
+video,canvas,img{
+ width:100%;border-radius:10px;
+ margin-top:10px;background:#080808;
+}
+input{width:100%;margin-top:12px}
+#result{font-size:25px;color:#e9bd54;text-align:center}
+.small{color:#bbb;font-size:13px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>VISION FINDER AI</h1>
+<p>Smart Candlestick Chart Scanner</p>
+</header>
+
+<div class="card">
+<h3>📷 Live Camera Scanner</h3>
+<video id="camera" autoplay playsinline muted></video>
+<button onclick="startCamera()">Start Camera</button>
+<button onclick="stopCamera()">Stop Camera</button>
+</div>
+
+<div class="card">
+<h3>🖼️ Reference Chart Upload</h3>
+<input type="file" id="reference" accept="image/*">
+<img id="referencePreview" hidden>
+<p class="small">আপনার Candlestick Chart Image নির্বাচন করুন।</p>
+</div>
+
+<div class="card">
+<h3>🔍 AI Visual Matching</h3>
+<button onclick="compareImages()">Capture & Compare</button>
+<p id="result">Waiting for scan...</p>
+<p id="details" class="small"></p>
+</div>
+
+<canvas id="work" hidden></canvas>
+
+<script>
+let stream=null;
+let referenceImage=null;
+
+const video=document.getElementById("camera");
+const canvas=document.getElementById("work");
+const ctx=canvas.getContext("2d");
+
+async function startCamera(){
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({
+   video:{facingMode:"environment"},
+   audio:false
+  });
+  video.srcObject=stream;
+ }catch(e){
+  alert("Camera permission দিন অথবা HTTPS-এ খুলুন।");
+ }
+}
+
+function stopCamera(){
+ if(stream){
+  stream.getTracks().forEach(t=>t.stop());
+  stream=null;
+  video.srcObject=null;
+ }
+}
+
+document.getElementById("reference")
+.addEventListener("change",function(e){
+ const file=e.target.files[0];
+ if(!file)return;
+
+ const img=new Image();
+ img.onload=()=>{
+  referenceImage=img;
+  const preview=document.getElementById("referencePreview");
+  preview.src=img.src;
+  preview.hidden=false;
+ };
+ img.src=URL.createObjectURL(file);
+});
+
+function getPixels(source){
+ canvas.width=32;
+ canvas.height=32;
+ ctx.drawImage(source,0,0,32,32);
+ const data=ctx.getImageData(0,0,32,32).data;
+ const pixels=[];
+
+ for(let i=0;i<data.length;i+=4){
+  pixels.push(
+   0.299*data[i]+
+   0.587*data[i+1]+
+   0.114*data[i+2]
+  );
+ }
+ return pixels;
+}
+
+function compareImages(){
+ if(!stream || video.readyState<2){
+  alert("প্রথমে Camera Start করুন।");
+  return;
+ }
+ if(!referenceImage){
+  alert("প্রথমে Reference Image Upload করুন।");
+  return;
+ }
+
+ const a=getPixels(referenceImage);
+ const b=getPixels(video);
+
+ let difference=0;
+ for(let i=0;i<a.length;i++){
+  difference+=Math.abs(a[i]-b[i]);
+ }
+
+ const similarity=Math.max(
+  0,100-(difference/(a.length*255))*100
+ );
+
+ document.getElementById("result").innerText=
+ "Similarity: "+similarity.toFixed(2)+"%";
+
+ document.getElementById("details").innerText=
+ "Visual comparison complete. এটি প্রাথমিক Pixel Similarity, AI Trading Signal নয়।";
+}
+</script>
+
+</body>
+</html>
+
