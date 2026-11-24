@@ -1,0 +1,532 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101116">
+<title>Vision Finder AI — Indian Market Scanner</title>
+
+<style>
+:root {
+  --bg:#101116;
+  --panel:#1b1d26;
+  --panel2:#222531;
+  --line:#343847;
+  --gold:#e6b84a;
+  --text:#f5f5f7;
+  --muted:#a8adba;
+  --green:#37c98b;
+  --red:#ff6b73;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+  padding:16px 14px 32px;
+}
+main {max-width:760px;margin:auto}
+header {text-align:center;padding:12px 0 18px}
+.logo {
+  width:48px;height:48px;margin:auto auto 10px;
+  border-radius:15px;
+  background:linear-gradient(135deg,#f2cf72,#a97816);
+  display:grid;place-items:center;
+  color:#171717;font-weight:900;font-size:23px;
+}
+h1 {font-size:25px;letter-spacing:1.2px;margin:0;color:var(--gold)}
+header p {color:var(--muted);font-size:13px}
+.card {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px;margin:13px 0;
+}
+h2 {font-size:16px;margin:0 0 12px}
+label {
+  display:block;font-size:13px;
+  color:var(--muted);margin:10px 0 6px;
+}
+select,input[type=file] {
+  width:100%;background:#11131a;color:white;
+  border:1px solid var(--line);
+  border-radius:10px;padding:12px;font:inherit;
+}
+button {
+  width:100%;border:0;border-radius:10px;
+  padding:13px;margin-top:10px;
+  font-weight:600;cursor:pointer;
+  background:var(--gold);color:#171717;
+}
+button.secondary {
+  background:#303443;color:white;
+  border:1px solid #44495a;
+}
+button.danger {background:#4a272d;color:white}
+button:disabled {opacity:.45;cursor:not-allowed}
+.actions {
+  display:grid;grid-template-columns:1fr 1fr;gap:9px;
+}
+video,img.preview {
+  width:100%;max-height:390px;
+  object-fit:contain;background:#08090d;
+  border:1px solid var(--line);
+  border-radius:12px;margin-top:10px;
+}
+[hidden] {display:none!important}
+.status {
+  font-size:12px;color:var(--muted);
+  margin:8px 0 0;line-height:1.5;
+}
+.pill {
+  display:inline-block;border:1px solid var(--line);
+  border-radius:30px;padding:5px 9px;
+  color:var(--muted);font-size:11px;
+}
+.grid {
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+}
+.metric {background:var(--panel2);padding:12px;border-radius:12px}
+.metric b {display:block;font-size:14px;margin-top:5px}
+.metric span {color:var(--muted);font-size:11px}
+.notice {
+  border-left:3px solid var(--gold);
+  padding:10px 12px;background:#292518;
+  border-radius:7px;color:#e8d9ae;
+  font-size:12px;line-height:1.55;
+}
+.history-item {
+  padding:10px 0;border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+.history-item small {
+  display:block;color:var(--muted);margin-top:4px;
+}
+footer {text-align:center;color:#777e8d;font-size:11px;padding:14px}
+@media(min-width:600px) {
+  body {padding:28px}
+}
+</style>
+</head>
+
+<body>
+<main>
+
+<header>
+  <div class="logo">VF</div>
+  <h1>VISION FINDER AI</h1>
+  <p>Indian Stock Market · Manual & Automatic Chart Scanner</p>
+  <span class="pill">STEP 1 · CAMERA + IMAGE INPUT</span>
+</header>
+
+<section class="card">
+  <h2>📊 Market Settings</h2>
+
+  <label>Market</label>
+  <select id="market">
+    <option>NSE</option>
+    <option>BSE</option>
+  </select>
+
+  <label>Stock / Index</label>
+  <select id="symbol">
+    <option value="NIFTY 50">NIFTY 50</option>
+    <option value="BANK NIFTY">BANK NIFTY</option>
+    <option value="SENSEX">SENSEX</option>
+    <option value="RELIANCE">RELIANCE</option>
+    <option value="TCS">TCS</option>
+    <option value="INFY">INFY</option>
+    <option value="HDFCBANK">HDFCBANK</option>
+    <option value="ICICIBANK">ICICIBANK</option>
+    <option value="OTHER">Other / Chart Image</option>
+  </select>
+
+  <label>Chart Timeframe</label>
+  <select id="timeframe">
+    <option>1 Minute</option>
+    <option>3 Minutes</option>
+    <option selected>5 Minutes</option>
+    <option>15 Minutes</option>
+    <option>30 Minutes</option>
+    <option>1 Hour</option>
+    <option>1 Day</option>
+    <option>1 Week</option>
+  </select>
+</section>
+
+<section class="card">
+  <h2>📷 Live Camera Scanner</h2>
+
+  <div id="cameraWrap" hidden>
+    <video id="camera" autoplay playsinline muted></video>
+  </div>
+
+  <div class="actions">
+    <button id="startCamera">Start Camera</button>
+    <button id="stopCamera" class="secondary" disabled>Stop Camera</button>
+  </div>
+
+  <button id="manualCapture" class="secondary" disabled>
+    Capture & Manual Scan
+  </button>
+
+  <p id="cameraStatus" class="status">
+    Camera বন্ধ আছে। HTTPS বা localhost-এ permission দিতে হবে।
+  </p>
+</section>
+
+<section class="card">
+  <h2>🖼️ Upload Chart Image</h2>
+
+  <label>Gallery থেকে Chart নির্বাচন করুন</label>
+  <input id="chartFile" type="file" accept="image/*">
+
+  <div id="previewWrap" hidden>
+    <img id="preview" class="preview" alt="Chart preview">
+  </div>
+
+  <div class="actions">
+    <button id="manualScan" disabled>Manual Scan</button>
+    <button id="clearImage" class="secondary">Clear Image</button>
+  </div>
+
+  <p class="status">
+    PNG, JPG অথবা WebP ছবি ব্যবহার করুন।
+  </p>
+</section>
+
+<section class="card">
+  <h2>🔁 Automatic Scan</h2>
+
+  <label>Auto capture interval</label>
+  <select id="interval">
+    <option value="5">প্রতি ৫ সেকেন্ড</option>
+    <option value="10" selected>প্রতি ১০ সেকেন্ড</option>
+    <option value="30">প্রতি ৩০ সেকেন্ড</option>
+    <option value="60">প্রতি ১ মিনিট</option>
+  </select>
+
+  <div class="actions">
+    <button id="startAuto" disabled>Start Automatic</button>
+    <button id="stopAuto" class="danger" disabled>Stop Automatic</button>
+  </div>
+
+  <p id="autoStatus" class="status">
+    Automatic scan শুরু করতে Camera চালু করুন।
+  </p>
+</section>
+
+<section class="card">
+  <h2>🧠 Scan Status</h2>
+
+  <div class="grid">
+    <div class="metric">
+      <span>Selected Market</span>
+      <b id="outMarket">NSE</b>
+    </div>
+
+    <div class="metric">
+      <span>Selected Symbol</span>
+      <b id="outSymbol">NIFTY 50</b>
+    </div>
+
+    <div class="metric">
+      <span>Timeframe</span>
+      <b id="outTimeframe">5 Minutes</b>
+    </div>
+
+    <div class="metric">
+      <span>Input Status</span>
+      <b id="inputStatus">Waiting</b>
+    </div>
+  </div>
+
+  <p id="scanMessage" class="status">
+    এখনও কোনো ছবি Scan করা হয়নি।
+  </p>
+
+  <div class="notice" style="margin-top:12px">
+    এই প্রথম ধাপে Camera, Gallery, Capture এবং Scan History কাজ করে।
+    আসল Candlestick AI, BUY/SELL signal, Entry/Stop Loss এবং
+    Confidence Score এখনও যুক্ত করা হয়নি।
+  </div>
+</section>
+
+<section class="card">
+  <h2>🕘 Scan History</h2>
+
+  <div id="history">
+    <p class="status">এখনও কোনো scan নেই।</p>
+  </div>
+
+  <button id="clearHistory" class="secondary">
+    Clear History
+  </button>
+</section>
+
+<footer>
+  VISION FINDER AI · Prototype build 1
+</footer>
+
+</main>
+
+<canvas id="captureCanvas" hidden></canvas>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+
+  const video = $("camera");
+  const canvas = $("captureCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let stream = null;
+  let selectedBlob = null;
+  let autoTimer = null;
+  let scanCount = 0;
+
+  function settings() {
+    $("outMarket").textContent = $("market").value;
+    $("outSymbol").textContent = $("symbol").value;
+    $("outTimeframe").textContent = $("timeframe").value;
+  }
+
+  ["market","symbol","timeframe"].forEach(id => {
+    $(id).addEventListener("change", settings);
+  });
+
+  settings();
+
+  function setMessage(message) {
+    $("scanMessage").textContent = message;
+  }
+
+  function setInputStatus(value) {
+    $("inputStatus").textContent = value;
+  }
+
+  async function startCamera() {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      $("cameraStatus").textContent =
+        "Camera API নেই। HTTPS-এ Chrome ব্যবহার করুন।";
+      return;
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {facingMode: {ideal:"environment"}},
+        audio: false
+      });
+
+      video.srcObject = stream;
+      await video.play();
+
+      $("cameraWrap").hidden = false;
+      $("startCamera").disabled = true;
+      $("stopCamera").disabled = false;
+      $("manualCapture").disabled = false;
+      $("startAuto").disabled = false;
+
+      $("cameraStatus").textContent =
+        "Camera চালু আছে। Manual বা Automatic Scan ব্যবহার করুন।";
+
+    } catch (err) {
+      $("cameraStatus").textContent =
+        "Camera চালু হয়নি: " + err.message;
+    }
+  }
+
+  function stopAuto() {
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+    }
+
+    $("startAuto").disabled = !stream;
+    $("stopAuto").disabled = true;
+    $("autoStatus").textContent = "Automatic scan বন্ধ আছে।";
+  }
+
+  function stopCamera() {
+    stopAuto();
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      stream = null;
+    }
+
+    video.srcObject = null;
+    $("cameraWrap").hidden = true;
+
+    $("startCamera").disabled = false;
+    $("stopCamera").disabled = true;
+    $("manualCapture").disabled = true;
+    $("startAuto").disabled = true;
+
+    $("cameraStatus").textContent = "Camera বন্ধ করা হয়েছে।";
+  }
+
+  function addHistory(source) {
+    scanCount++;
+
+    const history = $("history");
+
+    if (history.querySelector(".status")) {
+      history.innerHTML = "";
+    }
+
+    const item = document.createElement("div");
+    item.className = "history-item";
+
+    const title = document.createElement("strong");
+    title.textContent =
+      `#${scanCount} · ${$("symbol").value} · ${source}`;
+
+    const meta = document.createElement("small");
+    meta.textContent =
+      `${new Date().toLocaleString()} · ${$("timeframe").value} · AI analysis not connected`;
+
+    item.append(title,meta);
+    history.prepend(item);
+
+    setInputStatus("Captured");
+  }
+
+  function captureFrame(source) {
+    if (!stream || video.readyState < 2) {
+      setMessage("Camera frame এখনও প্রস্তুত নয়।");
+      return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    ctx.drawImage(
+      video,0,0,canvas.width,canvas.height
+    );
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        setMessage("ছবি Capture করা যায়নি।");
+        return;
+      }
+
+      selectedBlob = blob;
+
+      $("preview").src = URL.createObjectURL(blob);
+      $("previewWrap").hidden = false;
+      $("manualScan").disabled = false;
+
+      addHistory(source);
+
+      setMessage(
+        "ছবি Capture হয়েছে। AI analysis পরবর্তী ধাপে যুক্ত হবে।"
+      );
+
+    },"image/jpeg",0.92);
+  }
+
+  function startAuto() {
+    if (!stream) {
+      $("autoStatus").textContent = "আগে Camera চালু করুন।";
+      return;
+    }
+
+    stopAuto();
+
+    const seconds = Number($("interval").value);
+
+    $("startAuto").disabled = true;
+    $("stopAuto").disabled = false;
+
+    $("autoStatus").textContent =
+      `Automatic capture চলছে — প্রতি ${seconds} সেকেন্ডে।`;
+
+    captureFrame("Automatic");
+
+    autoTimer = setInterval(() => {
+      captureFrame("Automatic");
+    },seconds * 1000);
+  }
+
+  $("startCamera").addEventListener("click",startCamera);
+  $("stopCamera").addEventListener("click",stopCamera);
+
+  $("manualCapture").addEventListener("click",() => {
+    captureFrame("Manual Camera");
+  });
+
+  $("startAuto").addEventListener("click",startAuto);
+  $("stopAuto").addEventListener("click",stopAuto);
+
+  $("chartFile").addEventListener("change",event => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setMessage("শুধু image file নির্বাচন করুন।");
+      return;
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      setMessage("ছবির আকার ১২ MB-এর কম রাখুন।");
+      event.target.value = "";
+      return;
+    }
+
+    selectedBlob = file;
+
+    $("preview").src = URL.createObjectURL(file);
+    $("previewWrap").hidden = false;
+    $("manualScan").disabled = false;
+
+    setInputStatus("Image ready");
+    setMessage("Chart image প্রস্তুত। Manual Scan চাপুন।");
+  });
+
+  $("manualScan").addEventListener("click",() => {
+    if (!selectedBlob) {
+      setMessage("আগে Camera Capture অথবা Gallery থেকে ছবি দিন।");
+      return;
+    }
+
+    addHistory("Manual Image");
+
+    setMessage(
+      "Manual scan record তৈরি হয়েছে। AI recognition এখনও সংযুক্ত নয়।"
+    );
+  });
+
+  $("clearImage").addEventListener("click",() => {
+    $("chartFile").value = "";
+    $("preview").removeAttribute("src");
+    $("previewWrap").hidden = true;
+
+    selectedBlob = null;
+
+    $("manualScan").disabled = true;
+    setInputStatus("Waiting");
+    setMessage("Selected image মুছে ফেলা হয়েছে।");
+  });
+
+  $("clearHistory").addEventListener("click",() => {
+    scanCount = 0;
+    $("history").innerHTML =
+      '<p class="status">এখনও কোনো scan নেই।</p>';
+  });
+
+  window.addEventListener("pagehide",() => {
+    if (autoTimer) clearInterval(autoTimer);
+
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+  });
+
+})();
+</script>
+</body>
+</html>
